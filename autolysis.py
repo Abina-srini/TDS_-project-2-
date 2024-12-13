@@ -8,8 +8,7 @@
 #   "ydata-profiling",
 #   "scipy",
 #   "numpy",
-#   "textblob",
-#   "htmlminify"
+#   "textblob"
 # ]
 # ///
 
@@ -27,7 +26,7 @@ import numpy as np
 from textblob import TextBlob
 import warnings
 from charset_normalizer import detect
-from htmlminify import html_minify
+#from htmlminify import html_minify
 
 
 # Suppress warnings related to data fitting

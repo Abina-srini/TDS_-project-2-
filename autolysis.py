@@ -28,9 +28,7 @@ from textblob import TextBlob
 import warnings
 from charset_normalizer import detect
 from htmlminify import html_minify
-def minify_html(html_content):
-    """Minify HTML using htmlminify."""
-    return html_minify(html_content)
+
 
 # Suppress warnings related to data fitting
 warnings.filterwarnings("ignore")
@@ -49,6 +47,10 @@ AIPROXY_TOKEN = os.environ.get("AIPROXY_TOKEN")
 if "AIPROXY_TOKEN" not in os.environ:
     print("Error: AIPROXY_TOKEN environment variable is not set.")
     sys.exit(1)
+
+def minify_html(html_content):
+    """Minify HTML using htmlminify."""
+    return html_minify(html_content)
 
 # Function to detect file encoding
 def detect_encoding(file_path):
@@ -72,6 +74,7 @@ def load_dataset(file_path):
     except Exception as e:
         print(f"Error loading dataset: {e}")
         sys.exit(1)
+        
 
 # Function to analyze the dataset
 def analyze_dataset(df):
@@ -91,11 +94,11 @@ def analyze_dataset(df):
     return summary
 
 # Function to generate a profile report
-def profile(df, output_folder, file_path):
-    profile = ProfileReport(df, title="Data Profiling Report", explorative=True)
-    output_path = os.path.join(output_folder, f"{file_path}_data_profile.html")
-    profile.to_file(output_path)
-    return f"Data profiling report has been saved as '{output_path}'."
+#def profile(df, output_folder, file_path):
+    #profile = ProfileReport(df, title="Data Profiling Report", explorative=True)
+    #output_path = os.path.join(output_folder, f"{file_path}_data_profile.html")
+    #profile.to_file(output_path)
+    #return f"Data profiling report has been saved as '{output_path}'."
 
 # Function to visualize data
 def visualize_data(df, output_folder, file_path):
@@ -216,7 +219,7 @@ def main():
     stat = fit_and_plot_distribution(df, output_folder, file_path)
     sentiment = perform_sentiment_analysis(df, output_folder, file_path)
     box_plot_path = plot_boxplot(df, output_folder, file_path)
-    profile_report = profile(df, output_folder, file_path)
+    #profile_report = profile(df, output_folder, file_path)
     prompt = f"I analyzed the dataset with the following characteristics: {summary}, {stat},{df}. Provide a narrative about by stat and summary.Also do timeseries analysis if you find any date column in my dataset"
     story = generate_narration(prompt)
 
@@ -229,7 +232,7 @@ def main():
             f.write(f"![Visualization]({chart})\n")
         if box_plot_path:
             f.write(f"![Box Plot]({box_plot_path})\n")
-        f.write(f"# Profile Report\n{profile_report}\n")
+        #f.write(f"# Profile Report\n{profile_report}\n")
         f.write(f"# Statistical Analysis Report\n{stat}\n")
         f.write(f"# Sentiment Analysis Report\n{sentiment}\n")
 

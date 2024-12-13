@@ -9,6 +9,7 @@
 #   "scipy",
 #   "numpy",
 #   "textblob",
+#   "html5lib"
 # ]
 # ///
 import os

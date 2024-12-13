@@ -1,20 +1,17 @@
-
 # /// script
-requires-python = ">=3.11"
-dependencies = [
-  "httpx",
-  "pandas",
-  "matplotlib",
-  "seaborn",
-  "requests",
-  "ydata-profiling",
-  "scipy",
-  "numpy",
-  "textblob",
-]
+# requires-python = ">=3.11"
+# dependencies = [
+#   "httpx",
+#   "pandas",
+#   "matplotlib",
+#   "seaborn",
+#   "requests",
+#   "ydata-profiling",
+#   "scipy",
+#   "numpy",
+#   "textblob",
+# ]
 # ///
-
-
 import os
 import sys
 import pandas as pd

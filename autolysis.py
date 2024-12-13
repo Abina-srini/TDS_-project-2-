@@ -26,6 +26,12 @@ import numpy as np
 from textblob import TextBlob
 import warnings
 from charset_normalizer import detect
+import html5lib
+
+def minify_html(html_content):
+    """Minify HTML using html5lib."""
+    parser = html5lib.HTMLParser(strict=True)
+    return html5lib.serialize(parser.parse(html_content))
 
 # Suppress warnings related to data fitting
 warnings.filterwarnings("ignore")

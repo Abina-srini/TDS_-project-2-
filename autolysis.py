@@ -9,9 +9,11 @@
 #   "scipy",
 #   "numpy",
 #   "textblob",
-#   "html5lib"
+#   "htmlminify"
 # ]
+# python_version = "3.13"
 # ///
+
 import os
 import sys
 import pandas as pd
@@ -26,12 +28,10 @@ import numpy as np
 from textblob import TextBlob
 import warnings
 from charset_normalizer import detect
-import html5lib
-
+from htmlminify import html_minify
 def minify_html(html_content):
-    """Minify HTML using html5lib."""
-    parser = html5lib.HTMLParser(strict=True)
-    return html5lib.serialize(parser.parse(html_content))
+    """Minify HTML using htmlminify."""
+    return html_minify(html_content)
 
 # Suppress warnings related to data fitting
 warnings.filterwarnings("ignore")

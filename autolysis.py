@@ -11,7 +11,6 @@
 #   "textblob",
 #   "htmlminify"
 # ]
-# python_version = "3.13"
 # ///
 
 import os

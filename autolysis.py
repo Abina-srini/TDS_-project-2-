@@ -15,6 +15,8 @@
 import os
 import sys
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')  # Use Agg backend for non-GUI rendering
 import matplotlib.pyplot as plt
 import seaborn as sns
 import requests
@@ -34,7 +36,7 @@ print("Arguments passed:", sys.argv)
 print("Starting analysis script")
 
 # Directly set the token in os.environ (for temporary use only)
-os.environ["AIPROXY_TOKEN"] = "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIzZjEwMDE3MDVAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.38K6jer3VKplM-TfIzuiob-JB8jizvKZy72qJ_cDalM" # Replace with your token
+os.environ["AIPROXY_TOKEN"] = "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIzZjEwMDE3MDVAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.38K6jer3VKplM-TfIzuiob-JB8jizvKZy72qJ_cDalM"  # Replace with your token
 
 # Retrieve the token
 AIPROXY_TOKEN = os.environ.get("AIPROXY_TOKEN")
@@ -83,9 +85,6 @@ def analyze_dataset(df):
         "shape": df.shape,
     }
     return summary
-
-
-# Function to generate a profile report
 
 # Function to visualize data
 def visualize_data(df, output_folder):
@@ -176,6 +175,7 @@ def plot_boxplot(df, output_folder):
     else:
         print("No numeric data available to plot.")
         return None
+
 def generate_narration(prompt):
     url = "https://aiproxy.sanand.workers.dev/openai/v1/chat/completions"
     headers = {"Content-Type": "application/json", "Authorization": f"Bearer {AIPROXY_TOKEN}"}
@@ -188,6 +188,7 @@ def generate_narration(prompt):
     except Exception as e:
         print(f"Error generating narration: {e}")
         sys.exit(1)
+
 # Main function
 def main():
     if len(sys.argv) != 2:
@@ -203,24 +204,12 @@ def main():
     chart_paths = visualize_data(df, output_folder)
     stat = fit_and_plot_distribution(df, output_folder)
     sentiment = perform_sentiment_analysis(df, output_folder)
-    box_plot_path = plot_boxplot(df, output_folder)
-    
-    prompt = f"I analyzed the dataset with the following characteristics: {summary}, {stat},{df}. Provide a narrative.Also do timeseries analysis if you find any date column in my dataset"
-    story = generate_narration(prompt)
+    boxplot_path = plot_boxplot(df, output_folder)
 
-    readme_path = os.path.join(output_folder, "README.md")
-    with open(readme_path, "w") as f:
-        f.write(f"# Automated Analysis Report\n\n## Summary\n{summary}\n\n")
-        f.write(f"## Story\n{story}\n\n")
-        f.write("## Visualizations\n")
-        for chart in chart_paths:
-            f.write(f"![Visualization]({chart})\n")
-        if box_plot_path:
-            f.write(f"![Box Plot]({box_plot_path})\n")
-        f.write(f"# Statistical Analysis Report\n{stat}\n")
-        f.write(f"# Sentiment Analysis Report\n{sentiment}\n")
-
-    print("Analysis complete. Results saved in", output_folder)
+    print("Analysis complete!")
+    print("Summary:", summary)
+    print("Charts saved at:", chart_paths)
+    print("Boxplot saved at:", boxplot_path)
 
 if __name__ == "__main__":
     main()

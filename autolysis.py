@@ -1,17 +1,4 @@
-# /// script
-#requires-python = ">=3.11"
-#dependencies = [
-# "httpx",
-# "pandas",
-# "matplotlib",
-#  "seaborn",
-#  "requests",
-#  #"ydata-profiling",
-# "scipy",
-#  "numpy",
-#  "textblob",
-#]
-# ///
+
 import os
 import sys
 import pandas as pd
@@ -26,14 +13,24 @@ import numpy as np
 from textblob import TextBlob
 import warnings
 from charset_normalizer import detect
-import re
 
-# Suppress warnings
+# Suppress warnings related to data fitting
 warnings.filterwarnings("ignore")
 
-# Function to sanitize file names
-def sanitize_filename(file_name):
-    return re.sub(r'[<>:"/\\|?*]', '_', file_name)
+# Print arguments passed to the script
+print("Arguments passed:", sys.argv)
+print("Starting analysis script")
+
+# Directly set the token in os.environ (for temporary use only)
+os.environ["AIPROXY_TOKEN"] = "eyJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6IjIzZjEwMDE3MDVAZHMuc3R1ZHkuaWl0bS5hYy5pbiJ9.38K6jer3VKplM-TfIzuiob-JB8jizvKZy72qJ_cDalM" # Replace with your token
+
+# Retrieve the token
+AIPROXY_TOKEN = os.environ.get("AIPROXY_TOKEN")
+
+# Verify environment variable
+if "AIPROXY_TOKEN" not in os.environ:
+    print("Error: AIPROXY_TOKEN environment variable is not set.")
+    sys.exit(1)
 
 # Function to detect file encoding
 def detect_encoding(file_path):
@@ -49,21 +46,23 @@ def load_dataset(file_path):
             raise FileNotFoundError(f"The file {file_path} does not exist.")
         if not file_path.lower().endswith(".csv"):
             raise ValueError(f"The file {file_path} is not a CSV file.")
-        
+
         encoding = detect_encoding(file_path)
         print(f"Detected file encoding: {encoding}")
-        return pd.read_csv(file_path, encoding=encoding)
+        df = pd.read_csv(file_path, encoding=encoding)
+        return df
     except Exception as e:
         print(f"Error loading dataset: {e}")
         sys.exit(1)
 
-# Function to analyze dataset
+# Function to analyze the dataset
 def analyze_dataset(df):
     numeric_and_categorical = df.select_dtypes(include=["number", "object", "category", "bool"])
     datetime_columns = df.select_dtypes(include=["datetime"])
     summary_stats = numeric_and_categorical.describe(include="all").to_dict()
     datetime_stats = {col: {"min": df[col].min(), "max": df[col].max()} for col in datetime_columns.columns}
-    return {
+
+    summary = {
         "columns": list(df.columns),
         "data_types": df.dtypes.astype(str).to_dict(),
         "missing_values": df.isnull().sum().to_dict(),
@@ -71,34 +70,35 @@ def analyze_dataset(df):
         "datetime_stats": datetime_stats,
         "shape": df.shape,
     }
+    return summary
 
-# Function to generate profile report
-def generate_profile_report(df, output_folder, file_path):
+
+# Function to generate a profile report
+def profile(df, output_folder):
     profile = ProfileReport(df, title="Data Profiling Report", explorative=True)
-    output_path = os.path.join(output_folder, f"{file_path}_data_profile.html")
+    output_path = os.path.join(output_folder, "data_profile.html")
     profile.to_file(output_path)
     return f"Data profiling report has been saved as '{output_path}'."
 
 # Function to visualize data
-def visualize_data(df, output_folder, file_path):
+def visualize_data(df, output_folder):
     numeric_df = df.select_dtypes(include=["number"])
     chart_paths = []
-    
+
     if not numeric_df.empty:
         plt.figure(figsize=(10, 8))
         sns.heatmap(numeric_df.corr(), annot=True, cmap="coolwarm")
         plt.title("Correlation Heatmap")
-        heatmap_path = os.path.join(output_folder, f"{file_path}_heatmap.png")
+        heatmap_path = os.path.join(output_folder, "heatmap.png")
         plt.savefig(heatmap_path)
         plt.close()
         chart_paths.append(heatmap_path)
     else:
         print("No numeric data available for correlation analysis.")
-    
     return chart_paths
 
 # Function to fit distributions and plot
-def fit_and_plot_distribution(df, output_folder, file_path):
+def fit_and_plot_distribution(df, output_folder):
     numeric_df = df.select_dtypes(include=["number"])
     if numeric_df.empty:
         print("No numeric data available for distribution fitting.")
@@ -140,8 +140,8 @@ def fit_and_plot_distribution(df, output_folder, file_path):
 
     return results
 
-# Function to perform sentiment analysis
-def perform_sentiment_analysis(df, output_folder, file_path, keyword="review"):
+# Function to perform sentiment analysis only on specified columns
+def perform_sentiment_analysis(df, output_folder, keyword="review"):
     target_columns = [col for col in df.columns if keyword.lower() in col.lower()]
     for col in target_columns:
         if df[col].dtype == "object":
@@ -149,15 +149,29 @@ def perform_sentiment_analysis(df, output_folder, file_path, keyword="review"):
             df[sentiment_col] = df[col].apply(
                 lambda text: TextBlob(str(text)).sentiment.polarity if pd.notnull(text) else None
             )
-    sentiment_output_path = os.path.join(output_folder, f"{file_path}_sentiment_analysis.csv")
+    sentiment_output_path = os.path.join(output_folder, "sentiment_analysis.csv")
     df.to_csv(sentiment_output_path, index=False)
     print(f"Sentiment analysis saved to {sentiment_output_path}")
     return df
 
-# Function to generate narration using OpenAI API
+# Function to plot boxplots
+def plot_boxplot(df, output_folder):
+    numeric_df = df.select_dtypes(include=["number"])
+    if not numeric_df.empty:
+        plt.figure(figsize=(10, 6))
+        sns.boxplot(data=numeric_df)
+        plt.title("Box Plot of Numeric Data")
+        plt.xticks(rotation=45)
+        boxplot_path = os.path.join(output_folder, "boxplot.png")
+        plt.savefig(boxplot_path)
+        plt.close()
+        return boxplot_path
+    else:
+        print("No numeric data available to plot.")
+        return None
 def generate_narration(prompt):
     url = "https://aiproxy.sanand.workers.dev/openai/v1/chat/completions"
-    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {os.environ.get('AIPROXY_TOKEN')}"}
+    headers = {"Content-Type": "application/json", "Authorization": f"Bearer {AIPROXY_TOKEN}"}
     data = {"model": "gpt-4o-mini", "messages": [{"role": "user", "content": prompt}]}
 
     try:
@@ -167,7 +181,6 @@ def generate_narration(prompt):
     except Exception as e:
         print(f"Error generating narration: {e}")
         sys.exit(1)
-
 # Main function
 def main():
     if len(sys.argv) != 2:
@@ -175,32 +188,19 @@ def main():
         sys.exit(1)
 
     file_path = sys.argv[1]
-    output_folder = sanitize_filename(os.path.splitext(file_path)[0])
+    output_folder = os.path.splitext(file_path)[0]
     os.makedirs(output_folder, exist_ok=True)
 
-    # Load dataset
     df = load_dataset(file_path)
-
-    # Analyze dataset
     summary = analyze_dataset(df)
-
-    # Generate visualizations
-    chart_paths = visualize_data(df, output_folder, os.path.basename(file_path))
-
-    # Fit distributions
-    stat = fit_and_plot_distribution(df, output_folder, os.path.basename(file_path))
-
-    # Perform sentiment analysis
-    perform_sentiment_analysis(df, output_folder, os.path.basename(file_path))
-
-    # Generate profiling report
-    profile_report = generate_profile_report(df, output_folder, os.path.basename(file_path))
-
-    # Generate narration
-    prompt = f"I analyzed the dataset with the following characteristics: {summary}. Provide a narrative about the statistical analysis and summary."
+    chart_paths = visualize_data(df, output_folder)
+    stat = fit_and_plot_distribution(df, output_folder)
+    sentiment = perform_sentiment_analysis(df, output_folder)
+    box_plot_path = plot_boxplot(df, output_folder)
+    profile_report = profile(df, output_folder)
+    prompt = f"I analyzed the dataset with the following characteristics: {summary}, {stat},{df}. Provide a narrative.Also do timeseries analysis if you find any date column in my dataset"
     story = generate_narration(prompt)
 
-    # Write to README
     readme_path = os.path.join(output_folder, "README.md")
     with open(readme_path, "w") as f:
         f.write(f"# Automated Analysis Report\n\n## Summary\n{summary}\n\n")
@@ -208,14 +208,13 @@ def main():
         f.write("## Visualizations\n")
         for chart in chart_paths:
             f.write(f"![Visualization]({chart})\n")
+        if box_plot_path:
+            f.write(f"![Box Plot]({box_plot_path})\n")
         f.write(f"# Profile Report\n{profile_report}\n")
+        f.write(f"# Statistical Analysis Report\n{stat}\n")
+        f.write(f"# Sentiment Analysis Report\n{sentiment}\n")
 
     print("Analysis complete. Results saved in", output_folder)
 
-# Run script
 if __name__ == "__main__":
-    try:
-        main()
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        sys.exit(1)
+    main()

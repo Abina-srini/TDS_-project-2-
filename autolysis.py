@@ -1,16 +1,4 @@
-# /// script
-dependencies = [
-  "httpx",
-  "pandas",
-  "matplotlib",
-  "seaborn",
-  "requests",
-  "ydata-profiling",
-  "scipy",
-  "numpy",
-  "textblob",
-]
-# ///
+
 import os
 import sys
 import pandas as pd

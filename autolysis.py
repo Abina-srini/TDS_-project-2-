@@ -6,7 +6,6 @@
 #   "matplotlib",
 #   "seaborn",
 #   "requests",
-#   "ydata-profiling",
 #   "scipy",
 #   "numpy",
 #   "textblob",
@@ -20,7 +19,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import requests
 import json
-from ydata_profiling import ProfileReport
 from scipy import stats
 from scipy.stats import norm, expon, lognorm, chi2
 import numpy as np
@@ -88,11 +86,6 @@ def analyze_dataset(df):
 
 
 # Function to generate a profile report
-def profile(df, output_folder):
-    profile = ProfileReport(df, title="Data Profiling Report", explorative=True)
-    output_path = os.path.join(output_folder, "data_profile.html")
-    profile.to_file(output_path)
-    return f"Data profiling report has been saved as '{output_path}'."
 
 # Function to visualize data
 def visualize_data(df, output_folder):
@@ -211,7 +204,7 @@ def main():
     stat = fit_and_plot_distribution(df, output_folder)
     sentiment = perform_sentiment_analysis(df, output_folder)
     box_plot_path = plot_boxplot(df, output_folder)
-    profile_report = profile(df, output_folder)
+    
     prompt = f"I analyzed the dataset with the following characteristics: {summary}, {stat},{df}. Provide a narrative.Also do timeseries analysis if you find any date column in my dataset"
     story = generate_narration(prompt)
 
@@ -224,7 +217,6 @@ def main():
             f.write(f"![Visualization]({chart})\n")
         if box_plot_path:
             f.write(f"![Box Plot]({box_plot_path})\n")
-        f.write(f"# Profile Report\n{profile_report}\n")
         f.write(f"# Statistical Analysis Report\n{stat}\n")
         f.write(f"# Sentiment Analysis Report\n{sentiment}\n")
 

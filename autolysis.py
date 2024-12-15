@@ -1,9 +1,17 @@
-"""
-input: ["CSV file (path to .csv file)"]
-output: ["automated_analysis_report.md", "charts", "sentiment_analysis.csv", "profile_report.html"]
-dependencies: ["httpx", "pandas", "matplotlib", "seaborn", "requests", "ydata-profiling", "scipy", "numpy", "textblob"]
-"""
-
+# /// script
+requires-python = ">=3.11"
+dependencies = [
+  "httpx",
+  "pandas",
+  "matplotlib",
+  "seaborn",
+  "requests",
+  "ydata-profiling",
+  "scipy",
+  "numpy",
+  "textblob",
+]
+# ///
 import os
 import sys
 import pandas as pd

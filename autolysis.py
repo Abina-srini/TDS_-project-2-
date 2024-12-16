@@ -16,6 +16,8 @@
 import os
 import sys
 import pandas as pd
+import matplotlib
+matplotlib.use('Agg')  # Use Agg backend for non-GUI rendering
 import matplotlib.pyplot as plt
 import seaborn as sns
 import requests
